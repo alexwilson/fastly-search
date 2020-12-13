@@ -1,0 +1,41 @@
+
+version: '2.2'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    container_name: fastly-search-elasticsearch
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - data:/usr/share/elasticsearch/data
+    ports:
+      - 9200
+  kibana:
+    container_name: fastly-search-kibana
+    depends_on:
+      - elasticsearch
+    image: docker.elastic.co/kibana/kibana:7.10.1
+    ports:
+      - 5601
+    links:
+      - elasticsearch
+  default_index_pattern:
+    image: jwilder/dockerize:latest
+    container_name: fastly-search-default-kibana-index-pattern
+    links:
+      - kibana
+    depends_on: 
+      - kibana
+    command: |
+      dockerize -wait http://kibana:5601 -timeout 120s
+      wget -O - 'http://kibana:5601/api/saved_objects/index-pattern' \
+          --header='Content-Type: application/json' \
+          --header='kbn-version: 7.10.0' \
+          --post-data='{"attributes":{"title":"fastly-services","timeFieldName":"updated_at"}}'
+
+
+
+volumes:
+  data:
+    driver: local
