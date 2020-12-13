@@ -1,13 +1,14 @@
 {
   "name": "fastly-search",
-  "version": "1.0.0",
+  "version": "0.0.1-alpha.1",
   "description": "A utility for ingesting & querying Fastly accounts with ElasticSearch.",
   "main": "index.js",
+  "bin": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Alex Wilson <alex@alexwilson.tech>",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@elastic/elasticsearch": "^7.10.0",
