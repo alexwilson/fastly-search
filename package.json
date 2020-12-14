@@ -9,7 +9,7 @@
   "scripts": {
     "start": "ts-node ./src/index.ts",
     "prepare": "tsc --skipLibCheck",
-    "test": "jest --forceExit --runInBand --detectOpenHandles"
+    "test": "jest --forceExit --runInBand --detectOpenHandles --passWithNoTests"
   },
   "author": "Alex Wilson <alex@alexwilson.tech>",
   "license": "MIT",

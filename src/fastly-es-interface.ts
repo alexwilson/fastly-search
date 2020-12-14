@@ -24,10 +24,7 @@ async function* withDetails(services: FastlyService[]): AsyncIterable<FastlyServ
 export async function* fastlyDocuments(): AsyncIterable<FastlyESDocument> {
     for await (const services of fastlyCollection('services')) {
         const detailedServices = withDetails(services as FastlyService[])
-        // const detailedServices = services.map((service) => {
-        //     console.debug(`EVENT=FETCH ID=${service.id} NAME="${service.attributes.name}"`)
-        //     return fastly(`service/${service.id}/details`)
-        // })
+
         for await (const service of detailedServices) {
             console.debug(`EVENT=GENERATE_DOCUMENT ID=${service.id} NAME="${service.name}"`)
             const document: FastlyESDocument = Object.create(null)
