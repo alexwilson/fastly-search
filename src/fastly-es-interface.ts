@@ -1,27 +1,33 @@
 import schedule from 'node-schedule'
-import {fastly, fastlyCollection} from './services/fastly.js'
-import {ifIndexEmpty, createIndex, ingestBatch, search} from './services/elasticsearch.js'
+import {fastly, fastlyCollection, FastlyService, FastlyResponse} from './services/fastly'
+import {ifIndexEmpty, createIndex, ingestBatch, search} from './services/elasticsearch'
 
-async function* withDetails(services) {
+export type FastlyESDocument = {
+    id: string
+    name: string
+    version: {
+        [key: string]: string|object[]
+    }
+    [key: string]: string|object|object[]
+}
+
+async function* withDetails(services: FastlyService[]): AsyncIterable<FastlyService> {
     const detailedServices = services.map((service) => {
         console.debug(`EVENT=FETCH ID=${service.id} NAME="${service.attributes.name}"`)
-        return fastly(`service/${service.id}/details`)
+        return fastly(`service/${service.id}/details`) as Promise<FastlyService>
     })
     for (const details of detailedServices) {
         yield details
     }
 }
 
-export async function* fastlyDocuments() {
+export async function* fastlyDocuments(): AsyncIterable<FastlyESDocument> {
     for await (const services of fastlyCollection('services')) {
-        const detailedServices = withDetails(services)
-        // const detailedServices = services.map((service) => {
-        //     console.debug(`EVENT=FETCH ID=${service.id} NAME="${service.attributes.name}"`)
-        //     return fastly(`service/${service.id}/details`)
-        // })
+        const detailedServices = withDetails(services as FastlyService[])
+
         for await (const service of detailedServices) {
             console.debug(`EVENT=GENERATE_DOCUMENT ID=${service.id} NAME="${service.name}"`)
-            const document = {}
+            const document: FastlyESDocument = Object.create(null)
             for (const [key, value] of Object.entries(service)) {
 
                 // We squash down the version/active_version object separately

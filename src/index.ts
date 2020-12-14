@@ -1,7 +1,7 @@
 #!/usr/bin/env node --max-old-space-size=4096
 import os from 'os'
 import inquirer from 'inquirer'
-import {setup, search} from './src/fastly-es-interface.js'
+import {setup, search} from './fastly-es-interface'
 import { exit } from 'process'
 
 async function main() {
@@ -9,7 +9,7 @@ async function main() {
         console.error('You must have an ELASTICSEARCH_URL set.')
         exit(1)
     }
-    if (!('FASTLY_API_KEY') in process.env) {
+    if (!('FASTLY_API_KEY' in process.env)) {
         console.error('You must have a FASTLY_API_KEY set.')
         exit(1)
     }
@@ -39,7 +39,7 @@ async function main() {
                 fields
             },
         })
-        results.forEach(result => {
+        results.forEach((result: Result) => {
             fields.forEach(field => console.log(field, result[field].join(', ')))
             console.log()
         })
@@ -48,3 +48,7 @@ async function main() {
 }
 
 main()
+
+type Result = {
+    [key: string]: string[]
+}
