@@ -5,7 +5,20 @@ const ES_INDEX = (process.env.ES_INDEX || 'fastly-services')
 
 const client = new Client({node: ELASTICSEARCH_URL})
 
-export async function ifIndexEmpty(fn) {
+export type Document = {
+    id: string
+    name: string
+}
+
+export type Hit = {
+    _id: string
+    _type: string
+    _score: Number
+    _source: Document
+    fields?: string[][]
+}
+
+export async function ifIndexEmpty(fn: Function) {
     const {body} = await client.indices.stats({index: ES_INDEX})
     console.debug(`EVENT=ELASTICSEARCH_INDEX_SIZE SIZE=${body.indices[ES_INDEX].total.docs.count}`)
     if (body.indices[ES_INDEX].total.docs.count === 0) {
@@ -44,7 +57,7 @@ export async function flush() {
     return await client.indices.refresh({index: ES_INDEX})
 }
 
-export async function ingest(document) {
+export async function ingest(document: Document) {
     console.debug(`EVENT=ELASTICSEARCH_INGEST ID=${document.id}`)
     return  client.index({
         index: ES_INDEX,
@@ -53,7 +66,7 @@ export async function ingest(document) {
     })
 }
 
-export async function ingestBatch(batch) {
+export async function ingestBatch(batch: Iterable<Document>|AsyncIterable<Document>) {
     const ingestion = []
     for await (const document of batch) {
         ingestion.push(ingest(document))
@@ -67,5 +80,5 @@ export async function ingestBatch(batch) {
 export async function search(query = {}) {
     return (await client.search(Object.assign({
         index: ES_INDEX
-    }, query))).body.hits.hits.map(hit => hit.fields ? hit.fields : hit._source)
+    }, query))).body.hits.hits.map((hit: Hit) => hit.fields ? hit.fields : hit._source)
 }
